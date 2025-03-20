@@ -30,25 +30,23 @@ def load_cifar():
     return train, val
 
 
-def load_shape_dataset():
+def load_shape_dataset(img_size):
     TRAIN_DIR = Path(__file__).parent / 'train-vqvae' / 'clean_pegs'
-    VAL_DIR = Path(__file__).parent / 'val-vqvae' / 'clean_pegs'
-
-    IMG_SIZE = (64, 64)
+    VAL_DIR = Path(__file__).parent / 'eval-vqvae' / 'clean_pegs'
 
     train = ShapeDataset(
         dir_path=TRAIN_DIR,
         transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,)),
-            transforms.Resize(IMG_SIZE),
+            transforms.Resize(img_size),
         ]))
     val = ShapeDataset(
-        dir_path=TRAIN_DIR,
+        dir_path=VAL_DIR,
         transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,)),
-            transforms.Resize(IMG_SIZE),
+            transforms.Resize(img_size),
         ]))
     return train, val
 
@@ -98,7 +96,7 @@ def data_loaders(train_data, val_data, batch_size):
     return train_loader, val_loader
 
 
-def load_data_and_data_loaders(dataset, batch_size):
+def load_data_and_data_loaders(dataset, batch_size, img_size):
     if dataset == 'CIFAR10':
         training_data, validation_data = load_cifar()
         training_loader, validation_loader = data_loaders(
@@ -118,7 +116,7 @@ def load_data_and_data_loaders(dataset, batch_size):
 
         x_train_var = np.var(training_data.data)
     elif dataset == 'shape':
-        training_data, validation_data = load_shape_dataset()
+        training_data, validation_data = load_shape_dataset(img_size)
         training_loader, validation_loader = data_loaders(
             training_data, validation_data, batch_size)
         x_train_var = np.var(training_data.data / 255.0)

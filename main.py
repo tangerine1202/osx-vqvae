@@ -29,14 +29,16 @@ def parse_args():
 
     parser.add_argument("-e", "--n_updates", type=int, default=5000)
     parser.add_argument("-in-dim", "--input_dim", type=int, default=1, help='1 for grayscale 3 for rgb')
+    parser.add_argument("-img-sz", "--img_size", nargs='+', type=int, default=[32, 32],
+                        help='Resize input image to (height, width)')
     parser.add_argument("-ds", "--dataset", type=str, default='CIFAR10')
     parser.add_argument("-v", "--verbose", action="store_true")
     # whether or not to save model
     parser.add_argument("-o", "--output", type=str, default=timestamp)
     parser.add_argument("-viz", "--viz", action="store_true",
                         help="Whether to visualize the reconstructions")
-
     args = parser.parse_args()
+    args.img_size = args.img_size if len(args.img_size) == 2 else [args.img_size[0], args.img_size[0]]
     pprint(args.__dict__)
 
     return args
@@ -46,8 +48,8 @@ def main(args):
     print(f'Saving model and results to {args.output}.pth')
 
     # Load data and define batch data loaders
-    training_data, validation_data, training_loader, validation_loader, x_train_var \
-        = utils.load_data_and_data_loaders(args.dataset, args.batch_size)
+    training_data, validation_data, training_loader, validation_loader, x_train_var = utils.load_data_and_data_loaders(
+        args.dataset, args.batch_size, args.img_size)
 
     # Set up VQ-VAE model with components defined in ./models/ folder
     model = VQVAE(args.n_hiddens, args.n_residual_hiddens,

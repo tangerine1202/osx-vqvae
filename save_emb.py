@@ -19,11 +19,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
-    parser.add_argument("-o", "--output", type=Path, help="Output embedding file, default to ckpt name", default=None)
+    # parser.add_argument("-o", "--output", type=Path, help="Output embedding file", default=None)
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
-    args.output = args.output or args.ckpt.with_suffix('.npy')
+    args.output = args.ckpt.with_suffix('')
     return args
 
 
@@ -51,29 +51,37 @@ def main(args):
         print(model)
 
     # Load data and define batch data loaders
-    training_data, validation_data, training_loader, validation_loader, x_train_var \
+    _, _, training_loader, validation_loader, _ \
         = utils.load_data_and_data_loaders(args.dataset, args.batch_size)
 
-    filename_emb_dict = {}
-    for x, filenames in training_loader:
-        x = x.to(device)
-        z_q = model.encode(x, args.verbose)
-        z_q = z_q.cpu().detach().numpy()
-        filename_emb_dict.update({f: z_q[i].flatten() for i, f in enumerate(filenames)})
+    for name, loader in zip(['train', 'eval'], [training_loader, validation_loader]):
+        fname_emb_dict = {}
+        for x, filenames in loader:
+            x = x.to(device)
+            z_q = model.encode(x, args.verbose)
+            z_q = z_q.cpu().detach().numpy()
 
-    print(f'Number of embeddings: {len(filename_emb_dict)}')
-    print(f'Example embedding: {list(filename_emb_dict.values())[0].shape}')
+            for i, fname in enumerate(filenames):
+                f = str(Path(fname).with_suffix(''))
+                fname_emb_dict[f] = z_q[i].flatten()
 
-    np.save(args.output, filename_emb_dict)
-    print(f'Saved embeddings to {args.output}')
+        print(f'----- {name} embeddings -----')
+        print(f'# of embeddings: {len(fname_emb_dict)}')
+        print(f'Embedding shape: {list(fname_emb_dict.values())[0].shape}')
+        print(f'Example Key: {list(fname_emb_dict.keys())[0]}')
 
-    print('Checking saved embeddings...')
-    tmp_dict = np.load(args.output, allow_pickle=True).item()
-    assert len(tmp_dict) == len(filename_emb_dict), "Number of embeddings mismatch"
-    assert all(k in tmp_dict for k in filename_emb_dict.keys()), "Some keys are missing"
-    assert all(k in filename_emb_dict for k in tmp_dict.keys()), "Some keys are missing"
-    assert all(np.array_equal(v, tmp_dict[k]) for k, v in filename_emb_dict.items()), "Some values are different"
-    print('Embeddings loaded successfully.')
+        output_path = f'{args.output}_{name}.npy'
+        np.save(output_path, fname_emb_dict)
+        print(f'Saved embeddings to {output_path}')
+
+        print('Checking saved embeddings...')
+        tmp_dict = np.load(output_path, allow_pickle=True).item()
+        assert len(tmp_dict) == len(fname_emb_dict), "Number of embeddings mismatch"
+        assert all(k in tmp_dict for k in fname_emb_dict.keys()), "Some keys are missing"
+        assert all(k in fname_emb_dict for k in tmp_dict.keys()), "Some keys are missing"
+        assert all(np.array_equal(v, tmp_dict[k]) for k, v in fname_emb_dict.items()), "Some values are different"
+        print('Embeddings loaded successfully.')
+        print('------------------------------')
 
 
 if __name__ == "__main__":
