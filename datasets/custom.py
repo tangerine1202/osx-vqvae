@@ -17,6 +17,7 @@ class ShapeDataset(Dataset):
 
         self.data = np.stack([self.load_data(path) for path in self.data_paths], axis=0)
         self.labels = np.array([self.load_label(path) for path in self.data_paths], dtype=np.int64)
+        self.filenames = [path.name for path in self.data_paths]
         self.transform = transform
 
     def __len__(self):
@@ -37,6 +38,7 @@ class ShapeDataset(Dataset):
     def __getitem__(self, idx):
         data = self.data[idx]
         label = self.labels[idx]
+        filename = self.filenames[idx]
         if self.transform:
             data = self.transform(data)
-        return data, label
+        return data, filename

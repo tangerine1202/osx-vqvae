@@ -135,16 +135,16 @@ def readable_timestamp():
     return time.ctime().replace('  ', ' ').replace(' ', '_').replace(':', '_').lower()
 
 
-def save_model_and_results(model, results, hyperparameters, filename):
-    SAVE_MODEL_PATH = Path(os.getcwd() + '/results')
-    SAVE_MODEL_PATH.mkdir(parents=True, exist_ok=True)
+def save_model_and_results(model, results, hyperparameters, filepath):
+    SAVE_MODEL_PATH = Path(filepath)
+    SAVE_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     results_to_save = {
         'model': model.state_dict(),
         'results': results,
         'hyperparameters': hyperparameters
     }
-    torch.save(results_to_save, str(SAVE_MODEL_PATH) + '/vqvae_data_' + filename + '.pth')
+    torch.save(results_to_save, str(SAVE_MODEL_PATH) + '.pth')
 
 
 def save_reconstruction(x, x_hat, i, filename):

@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("--n_hiddens", type=int, default=128)
     parser.add_argument("--n_residual_hiddens", type=int, default=32)
     parser.add_argument("--n_residual_layers", type=int, default=2)
-    parser.add_argument("--embedding_dim", type=int, default=64)
+    parser.add_argument("-e-dim", "--embedding_dim", type=int, default=64)
     parser.add_argument("--n_embeddings", type=int, default=512)
     parser.add_argument("--beta", type=float, default=.25)
     parser.add_argument("--learning_rate", type=float, default=3e-4)
@@ -32,20 +32,18 @@ def parse_args():
     parser.add_argument("-ds", "--dataset", type=str, default='CIFAR10')
     parser.add_argument("-v", "--verbose", action="store_true")
     # whether or not to save model
-    parser.add_argument("-s", "--save", action="store_true")
-    parser.add_argument("-o", "--filename", type=str, default=timestamp)
+    parser.add_argument("-o", "--output", type=str, default=timestamp)
     parser.add_argument("-viz", "--viz", action="store_true",
                         help="Whether to visualize the reconstructions")
 
     args = parser.parse_args()
-    pprint(args)
+    pprint(args.__dict__)
 
     return args
 
 
 def main(args):
-    if args.save:
-        print('Results will be saved in ./results/vqvae_' + args.filename + '.pth')
+    print(f'Saving model and results to {args.output}.pth')
 
     # Load data and define batch data loaders
     training_data, validation_data, training_loader, validation_loader, x_train_var \
@@ -89,13 +87,12 @@ def main(args):
             """
             save model and print values
             """
-            if args.save:
-                hyperparameters = args.__dict__
-                utils.save_model_and_results(
-                    model, results, hyperparameters, args.filename)
+            hyperparameters = args.__dict__
+            utils.save_model_and_results(
+                model, results, hyperparameters, args.output)
 
             if args.viz:
-                utils.save_reconstruction(x, x_hat, i, args.filename)
+                utils.save_reconstruction(x, x_hat, i, args.output)
 
             tqdm.write(f'Update #{i}, '
                        f'Recon Error: {np.mean(results["recon_errors"][-args.log_interval:]):.4f}, '
