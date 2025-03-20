@@ -8,7 +8,7 @@ from models.residual import ResidualStack
 
 class Decoder(nn.Module):
     """
-    This is the p_phi (x|z) network. Given a latent sample z p_phi 
+    This is the p_phi (x|z) network. Given a latent sample z p_phi
     maps back to the original space z -> x.
 
     Inputs:
@@ -19,20 +19,18 @@ class Decoder(nn.Module):
 
     """
 
-    def __init__(self, in_dim, h_dim, n_res_layers, res_h_dim):
+    def __init__(self, in_dim, h_dim, n_res_layers, res_h_dim, output_dim=3):
         super(Decoder, self).__init__()
         kernel = 4
         stride = 2
 
         self.inverse_conv_stack = nn.Sequential(
-            nn.ConvTranspose2d(
-                in_dim, h_dim, kernel_size=kernel-1, stride=stride-1, padding=1),
+            nn.ConvTranspose2d(in_dim, h_dim, kernel_size=kernel - 1, stride=stride - 1, padding=1),
             ResidualStack(h_dim, h_dim, res_h_dim, n_res_layers),
             nn.ConvTranspose2d(h_dim, h_dim // 2,
                                kernel_size=kernel, stride=stride, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(h_dim//2, 3, kernel_size=kernel,
-                               stride=stride, padding=1)
+            nn.ConvTranspose2d(h_dim // 2, output_dim, kernel_size=kernel, stride=stride, padding=1)
         )
 
     def forward(self, x):
@@ -41,10 +39,10 @@ class Decoder(nn.Module):
 
 if __name__ == "__main__":
     # random data
-    x = np.random.random_sample((3, 40, 40, 200))
+    x = np.random.random_sample((3, 128, 40, 40))
     x = torch.tensor(x).float()
 
     # test decoder
-    decoder = Decoder(40, 128, 3, 64)
+    decoder = Decoder(128, 3, 3, 64)
     decoder_out = decoder(x)
     print('Dncoder out shape:', decoder_out.shape)
