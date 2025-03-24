@@ -1,8 +1,10 @@
 data/
 __pycache__
 .vscode/
-**.swp 
+**.swp
 playground*
 results/
 .ipynb_checkpoints/
 samples/
+
+.venv/

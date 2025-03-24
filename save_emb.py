@@ -18,12 +18,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
+    parser.add_argument("-img-size", "--img_size", type=int, default=64)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
     # parser.add_argument("-o", "--output", type=Path, help="Output embedding file", default=None)
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
     args.output = args.ckpt.with_suffix('')
+    args.img_size = (args.img_size, args.img_size) if isinstance(args.img_size, int) else args.img_size
     return args
 
 
@@ -52,7 +54,7 @@ def main(args):
 
     # Load data and define batch data loaders
     _, _, training_loader, validation_loader, _ \
-        = utils.load_data_and_data_loaders(args.dataset, args.batch_size)
+        = utils.load_data_and_data_loaders(args.dataset, args.batch_size, args.img_size)
 
     for name, loader in zip(['train', 'eval'], [training_loader, validation_loader]):
         fname_emb_dict = {}
