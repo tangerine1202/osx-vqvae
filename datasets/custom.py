@@ -41,4 +41,4 @@ class ShapeDataset(Dataset):
         filename = self.filenames[idx]
         if self.transform:
             data = self.transform(data)
-        return data, filename
+        return data, label, filename

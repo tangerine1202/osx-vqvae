@@ -31,8 +31,8 @@ def load_cifar():
 
 
 def load_shape_dataset(img_size):
-    TRAIN_DIR = Path(__file__).parent / 'train-vqvae' / 'clean_pegs'
-    VAL_DIR = Path(__file__).parent / 'eval-vqvae' / 'clean_pegs'
+    TRAIN_DIR = Path(__file__).parent / 'data' / 'train-vqvae' / 'clean_pegs'
+    VAL_DIR = Path(__file__).parent / 'data' / 'eval-vqvae' / 'clean_pegs'
 
     train = ShapeDataset(
         dir_path=TRAIN_DIR,

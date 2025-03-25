@@ -58,7 +58,7 @@ def main(args):
 
     for name, loader in zip(['train', 'eval'], [training_loader, validation_loader]):
         fname_emb_dict = {}
-        for x, filenames in loader:
+        for x, label, filenames in loader:
             x = x.to(device)
             z_q = model.encode(x, args.verbose)
             z_q = z_q.cpu().detach().numpy()
@@ -68,11 +68,12 @@ def main(args):
                 fname_emb_dict[f] = z_q[i].flatten()
 
         print(f'----- {name} embeddings -----')
+        emb_shape = list(fname_emb_dict.values())[0].shape
         print(f'# of embeddings: {len(fname_emb_dict)}')
-        print(f'Embedding shape: {list(fname_emb_dict.values())[0].shape}')
+        print(f'Embedding shape: {emb_shape}')
         print(f'Example Key: {list(fname_emb_dict.keys())[0]}')
 
-        output_path = f'{args.output}_{name}.npy'
+        output_path = f'{args.output}_dim{emb_shape[0]}_{name}.npy'
         np.save(output_path, fname_emb_dict)
         print(f'Saved embeddings to {output_path}')
 

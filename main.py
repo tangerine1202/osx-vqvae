@@ -1,5 +1,6 @@
 import argparse
-import utils
+import shutil
+from pathlib import Path
 from pprint import pprint
 
 from tqdm.auto import tqdm
@@ -8,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import utils
 from models.vqvae import VQVAE
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -21,22 +23,21 @@ def parse_args():
     parser.add_argument("--n_hiddens", type=int, default=128)
     parser.add_argument("--n_residual_hiddens", type=int, default=32)
     parser.add_argument("--n_residual_layers", type=int, default=2)
-    parser.add_argument("-e-dim", "--embedding_dim", type=int, default=64)
     parser.add_argument("--n_embeddings", type=int, default=512)
     parser.add_argument("--beta", type=float, default=.25)
     parser.add_argument("--learning_rate", type=float, default=3e-4)
     parser.add_argument("--log_interval", type=int, default=100)
 
-    parser.add_argument("-e", "--n_updates", type=int, default=5000)
+    parser.add_argument("-e", "--n_updates", type=int, default=10000)
+    parser.add_argument("-e-dim", "--embedding_dim", type=int, default=1)  # dim of each codebook item
     parser.add_argument("-in-dim", "--input_dim", type=int, default=1, help='1 for grayscale 3 for rgb')
-    parser.add_argument("-img-sz", "--img_size", nargs='+', type=int, default=[32, 32],
+    parser.add_argument("-img-size", "--img_size", nargs='+', type=int, default=[32, 32],
                         help='Resize input image to (height, width)')
-    parser.add_argument("-ds", "--dataset", type=str, default='CIFAR10')
+    parser.add_argument("-ds", "--dataset", type=str, default='shape')
     parser.add_argument("-v", "--verbose", action="store_true")
     # whether or not to save model
-    parser.add_argument("-o", "--output", type=str, default=timestamp)
-    parser.add_argument("-viz", "--viz", action="store_true",
-                        help="Whether to visualize the reconstructions")
+    parser.add_argument("-o", "--output", type=Path, default=Path('results') / timestamp)
+    parser.add_argument("-viz", "--viz", action="store_true", help="Whether to visualize the reconstructions")
     args = parser.parse_args()
     args.img_size = args.img_size if len(args.img_size) == 2 else [args.img_size[0], args.img_size[0]]
     pprint(args.__dict__)
@@ -45,6 +46,11 @@ def parse_args():
 
 
 def main(args):
+    if (args.output / 'reconstructions_results').exists():
+        recon_path = args.output / 'reconstructions_results'
+        print(f'Warning: {recon_path} already exists. Deleting...')
+        shutil.rmtree(recon_path)
+
     print(f'Saving model and results to {args.output}.pth')
 
     # Load data and define batch data loaders
@@ -69,7 +75,7 @@ def main(args):
     }
 
     for i in tqdm(range(args.n_updates)):
-        (x, _) = next(iter(training_loader))
+        (x, *_) = next(iter(training_loader))
         x = x.to(device)
         optimizer.zero_grad()
 
