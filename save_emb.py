@@ -4,21 +4,53 @@ from pprint import pprint
 from pathlib import Path
 from types import SimpleNamespace
 
-from tqdm.auto import tqdm
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+from matplotlib import pyplot as plt
 
 from models.vqvae import VQVAE
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+def plot_viz(feat_dict, output_path=None, seed=42):
+    def get_vertex_cnt(x): return int(x[4:].split('_')[0])
+
+    def make_plot(data, output_path):
+        # Visualize for point with different color
+        plt.figure(figsize=(10, 10))
+        for i, key in enumerate(keys):
+            v_cnt = get_vertex_cnt(key)
+            plt.scatter(data[i, 0], data[i, 1], c=f'C{v_cnt}', label=f'{v_cnt} vertices')
+        # Remove duplicate labels
+        handles, labels = plt.gca().get_legend_handles_labels()
+        unique_labels = dict(zip(labels, handles))
+        plt.legend(unique_labels.values(), unique_labels.keys())
+        # Save the plot
+        plt.savefig(output_path)
+        print(f'Plot saved to {output_path}')
+
+    keys = list(feat_dict.keys())
+    features = np.stack(list(feat_dict.values()), axis=0)
+
+    pca = PCA(n_components=2, random_state=seed)
+    data_pca = pca.fit_transform(features)
+    data_pca = (data_pca - data_pca.min()) / (data_pca.max() - data_pca.min())
+
+    tsne = TSNE(n_components=2, random_state=seed)
+    data_tsne = tsne.fit_transform(features)
+    data_tsne = (data_tsne - data_tsne.min()) / (data_tsne.max() - data_tsne.min())
+
+    make_plot(data_pca, output_path=f'{output_path}_pca.png')
+    make_plot(data_tsne, output_path=f'{output_path}_tsne.png')
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
-    parser.add_argument("-img-size", "--img_size", type=int, default=64)
+    parser.add_argument("-img-size", "--img_size", type=int, default=32)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -79,6 +111,8 @@ def main(args):
         output_path = args.output_dir / f"{name}.npy"
         np.save(output_path, fname_emb_dict)
         print(f'Saved embeddings to {output_path}')
+
+        plot_viz(fname_emb_dict, output_path=output_path.with_suffix(''))
 
         print('Checking saved embeddings...')
         tmp_dict = np.load(output_path, allow_pickle=True).item()

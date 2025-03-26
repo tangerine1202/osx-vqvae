@@ -18,7 +18,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
-    parser.add_argument("-img-size", "--img_size", type=int, default=64)
+    parser.add_argument("-img-size", "--img_size", type=int, default=32)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-nv", "--no_viz", action="store_true", help="Whether not to visualize the reconstructions")
