@@ -142,12 +142,11 @@ def save_model_and_results(model, results, hyperparameters, filepath):
         'results': results,
         'hyperparameters': hyperparameters
     }
-    torch.save(results_to_save, str(SAVE_MODEL_PATH) + '.pth')
+    torch.save(results_to_save, str(SAVE_MODEL_PATH / 'ckpt.pth'))
+    return SAVE_MODEL_PATH
 
 
-def save_reconstruction(x, x_hat, i, filename):
-    # Save the reconstruction images
-    save_dir_path = Path(os.getcwd()) / 'results' / f'reconstructions_{filename}'
+def save_reconstruction(x, x_hat, i, save_dir_path):
     save_dir_path.mkdir(parents=True, exist_ok=True)
 
     bs, c, h, w = x.shape

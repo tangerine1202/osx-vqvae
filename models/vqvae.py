@@ -39,7 +39,7 @@ class VQVAE(nn.Module):
             print('original data shape:', x.shape)
             print('encoded data shape:', z_e.shape)
             print('recon data shape:', x_hat.shape)
-            assert False
+            assert False, 'Debugging mode: check shapes'
 
         return embedding_loss, x_hat, perplexity
 

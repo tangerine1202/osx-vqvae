@@ -20,11 +20,14 @@ def parse_args():
     parser.add_argument("ckpt", type=Path)
     parser.add_argument("-img-size", "--img_size", type=int, default=64)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
-    # parser.add_argument("-o", "--output", type=Path, help="Output embedding file", default=None)
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
-    args.output = args.ckpt.with_suffix('')
+
+    # Standardize output paths
+    args.output_dir = Path(args.ckpt.parent)
+    args.output_dir.mkdir(exist_ok=True, parents=True)
+
     args.img_size = (args.img_size, args.img_size) if isinstance(args.img_size, int) else args.img_size
     return args
 
@@ -73,7 +76,7 @@ def main(args):
         print(f'Embedding shape: {emb_shape}')
         print(f'Example Key: {list(fname_emb_dict.keys())[0]}')
 
-        output_path = f'{args.output}_dim{emb_shape[0]}_{name}.npy'
+        output_path = args.output_dir / f"{name}.npy"
         np.save(output_path, fname_emb_dict)
         print(f'Saved embeddings to {output_path}')
 
