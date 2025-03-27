@@ -51,6 +51,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
     parser.add_argument("-img-size", "--img_size", type=int, default=32)
+    parser.add_argument("-sn", "--shape_name", type=str)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -89,7 +90,7 @@ def main(args):
 
     # Load data and define batch data loaders
     _, _, training_loader, validation_loader, _ \
-        = utils.load_data_and_data_loaders(args.dataset, args.batch_size, args.img_size)
+        = utils.load_data_and_data_loaders(args.dataset, args.batch_size, args.img_size, args.shape_name)
 
     for name, loader in zip(['train', 'eval'], [training_loader, validation_loader]):
         fname_emb_dict = {}

@@ -19,15 +19,16 @@ def parse_args():
     parser = argparse.ArgumentParser()
     timestamp = utils.readable_timestamp()
 
+    parser.add_argument("-sn", "--shape_name", type=str)
+    parser.add_argument("-ds", "--dataset", type=str, default='shape')
+    parser.add_argument("-img-size", "--img_size", nargs='+', type=int,
+                        default=[32, 32], help='Resize input image to (h, w)')
     parser.add_argument("-e", "--n_updates", type=int, default=10000)
     parser.add_argument("-e-dim", "--embedding_dim", type=int, default=1)  # dim of each codebook item
     parser.add_argument("-in-dim", "--input_dim", type=int, default=1, help='1 for grayscale 3 for rgb')
-    parser.add_argument("-img-size", "--img_size", nargs='+', type=int, default=[32, 32],
-                        help='Resize input image to (height, width)')
-    parser.add_argument("-ds", "--dataset", type=str, default='shape')
     parser.add_argument("-v", "--verbose", action="store_true")
     # whether or not to save model
-    parser.add_argument("-o", "--output", type=str, default=timestamp, help="Output name (without path)")
+    parser.add_argument("-o", "--output", type=str, default='', help="Output name (without path)")
     parser.add_argument("-nv", "--no_viz", action="store_true", help="Whether not to visualize the reconstructions")
 
     # Training parameters
@@ -44,6 +45,8 @@ def parse_args():
     args.img_size = args.img_size if len(args.img_size) == 2 else [args.img_size[0], args.img_size[0]]
 
     # Standardize output paths
+    if args.output == '':
+        args.output = f'{args.shape_name}_{"x".join(args.img_size)}_{timestamp}'
     args.output_dir = Path('results') / args.output
     args.output_dir.mkdir(exist_ok=True, parents=True)
     args.recon_dir = Path('results') / 'train_recon' / args.output
@@ -62,7 +65,7 @@ def main(args):
 
     # Load data and define batch data loaders
     training_data, validation_data, training_loader, validation_loader, x_train_var = utils.load_data_and_data_loaders(
-        args.dataset, args.batch_size, args.img_size)
+        args.dataset, args.batch_size, args.img_size, args.shape_name)
 
     # Set up VQ-VAE model with components defined in ./models/ folder
     model = VQVAE(args.n_hiddens, args.n_residual_hiddens,

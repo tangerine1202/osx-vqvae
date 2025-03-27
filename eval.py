@@ -18,8 +18,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("ckpt", type=Path)
-    parser.add_argument("-img-size", "--img_size", type=int, default=32)
+    parser.add_argument('-sn', '--shape_name', type=str)
     parser.add_argument("-ds", "--dataset", type=str, default='shape')
+    parser.add_argument("-img-size", "--img_size", type=int, default=32)
     parser.add_argument("-bs", "--batch_size", type=int, default=32)
     parser.add_argument("-nv", "--no_viz", action="store_true", help="Whether not to visualize the reconstructions")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -38,7 +39,7 @@ def parse_args():
 def evaluate(args):
     # Load data and define batch data loaders
     _, validation_data, _, validation_loader, x_train_var = utils.load_data_and_data_loaders(
-        args.dataset, args.batch_size, args.img_size)
+        args.dataset, args.batch_size, args.img_size, args.shape_name)
 
     print('Loading checkpoint from', args.ckpt)
     checkpoint = torch.load(args.ckpt, weights_only=False)

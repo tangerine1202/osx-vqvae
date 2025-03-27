@@ -30,9 +30,9 @@ def load_cifar():
     return train, val
 
 
-def load_shape_dataset(img_size):
-    TRAIN_DIR = Path(__file__).parent / 'data' / 'train-vqvae' / 'clean_pegs'
-    VAL_DIR = Path(__file__).parent / 'data' / 'eval-vqvae' / 'clean_pegs'
+def load_shape_dataset(img_size, name):
+    TRAIN_DIR = Path(__file__).parent / 'data' / f'{name}' / 'train' / 'clean_pegs'
+    VAL_DIR = Path(__file__).parent / 'data' / f'{name}' / 'eval' / 'clean_pegs'
 
     train = ShapeDataset(
         dir_path=TRAIN_DIR,
@@ -96,7 +96,7 @@ def data_loaders(train_data, val_data, batch_size):
     return train_loader, val_loader
 
 
-def load_data_and_data_loaders(dataset, batch_size, img_size):
+def load_data_and_data_loaders(dataset, batch_size, img_size, name=None):
     if dataset == 'CIFAR10':
         training_data, validation_data = load_cifar()
         training_loader, validation_loader = data_loaders(
@@ -116,7 +116,7 @@ def load_data_and_data_loaders(dataset, batch_size, img_size):
 
         x_train_var = np.var(training_data.data)
     elif dataset == 'shape':
-        training_data, validation_data = load_shape_dataset(img_size)
+        training_data, validation_data = load_shape_dataset(img_size, name)
         training_loader, validation_loader = data_loaders(
             training_data, validation_data, batch_size)
         x_train_var = np.var(training_data.data / 255.0)
